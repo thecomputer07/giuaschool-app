@@ -1,0 +1,44 @@
+# Carica su TestFlight l'.ipa già compilato da una run di "iOS build", senza rifare la build.
+# Usa `xcrun altool` con la chiave App Store Connect API (segreti ASC_*), niente EAS.
+name: TestFlight upload
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: ID della run di "iOS build" (vuoto = ultima riuscita)
+        required: false
+        type: string
+      mac:
+        description: Mac di GitHub (se macos-26 resta in coda, prova macos-26-intel)
+        default: macos-26
+        type: choice
+        options: [macos-26, macos-26-intel]
+
+jobs:
+  upload:
+    runs-on: ${{ inputs.mac }}
+    timeout-minutes: 30
+    permissions:
+      actions: read
+    steps:
+      - name: Scarica l'.ipa
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ inputs.run_id }}
+        run: |
+          if [ -z "$RUN_ID" ]; then
+            RUN_ID=$(gh run list -R "$GITHUB_REPOSITORY" --workflow ios.yml --status success -L 1 --json databaseId -q '.[0].databaseId')
+          fi
+          echo "Run: $RUN_ID"
+          gh run download "$RUN_ID" -R "$GITHUB_REPOSITORY" -n giuaschool-ios -D .
+
+      - name: Invio a TestFlight
+        env:
+          ASC_API_KEY: ${{ secrets.ASC_API_KEY }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          mkdir -p ~/.appstoreconnect/private_keys
+          printf '%s' "$ASC_API_KEY" > ~/.appstoreconnect/private_keys/AuthKey_$ASC_KEY_ID.p8
+          xcrun altool --upload-app -f giuaschool.ipa -t ios --apiKey "$ASC_KEY_ID" --apiIssuer "$ASC_ISSUER_ID"

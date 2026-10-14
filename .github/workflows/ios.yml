@@ -1,9 +1,9 @@
 # Build iOS gratuita: compila sul runner macOS di GitHub (gratis per i repo pubblici) con
 # `eas build --local`, che NON consuma le build cloud di Expo. Certificato e provisioning
 # profile restano custoditi da EAS: per la build serve solo il segreto EXPO_TOKEN.
-# Con `submit: true` l'.ipa va su TestFlight: servono l'app creata su App Store Connect
-# (bundle com.thecomputer07.giuaschool) e i segreti ASC_API_KEY (contenuto del file .p8),
-# ASC_KEY_ID e ASC_ISSUER_ID.
+# Con `submit: true` l'.ipa va su TestFlight con `xcrun altool` (niente EAS Submit): servono
+# l'app su App Store Connect (bundle com.thecomputer07.giuaschool) e i segreti ASC_API_KEY
+# (contenuto del file .p8), ASC_KEY_ID e ASC_ISSUER_ID.
 name: iOS build
 
 on:
@@ -64,14 +64,13 @@ jobs:
           path: giuaschool.ipa
           retention-days: 14
 
-      - name: Invio a TestFlight
+      - name: Invio a TestFlight (altool, senza EAS)
         if: ${{ inputs.submit }}
         env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
           ASC_API_KEY: ${{ secrets.ASC_API_KEY }}
-          EXPO_ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
-          EXPO_ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
-          EXPO_APPLE_TEAM_ID: W9Q2L5WJ8P
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
         run: |
-          printf '%s' "$ASC_API_KEY" > "$RUNNER_TEMP/asc.p8"
-          EXPO_ASC_API_KEY_PATH="$RUNNER_TEMP/asc.p8" npx eas-cli@latest submit --platform ios --profile ios --path giuaschool.ipa --non-interactive
+          mkdir -p ~/.appstoreconnect/private_keys
+          printf '%s' "$ASC_API_KEY" > ~/.appstoreconnect/private_keys/AuthKey_$ASC_KEY_ID.p8
+          xcrun altool --upload-app -f giuaschool.ipa -t ios --apiKey "$ASC_KEY_ID" --apiIssuer "$ASC_ISSUER_ID"
