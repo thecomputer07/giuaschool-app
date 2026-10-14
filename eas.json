@@ -1,6 +1,6 @@
 {
   "cli": {
-    "appVersionSource": "local"
+    "appVersionSource": "remote"
   },
   "build": {
     "devel": {
@@ -35,6 +35,20 @@
       "android": {
         "buildType": "apk"
       }
+    },
+    "ios": {
+      "environment": "production",
+      "distribution": "store",
+      "autoIncrement": true,
+      "env": {
+        "URL": "https://registro.giua.edu.it/",
+        "SCHOOL": "I.I.S. Michele Giua"
+      }
+    }
+  },
+  "submit": {
+    "ios": {
+      "ios": {}
     }
   }
 }

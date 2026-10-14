@@ -6,7 +6,7 @@
 
 
 import { Stack, useRouter } from 'expo-router';
-import { Text, View } from 'react-native';
+import { Platform, Text, View } from 'react-native';
 import RNBiometrics, { KeyType } from 'react-native-easy-biometrics';
 import { WebView } from 'react-native-webview';
 import { AppState } from 'react-native';
@@ -70,7 +70,19 @@ export default function RegisterScreen() {
       throw new Error('La generazione del certificato digitale del dispositivo è fallita.');
     }
     // restituisce la nuova chiave pubblica
-    return result.publicKey;
+    return Platform.OS === 'ios' ? publicKeyToSpki(result.publicKey) : result.publicKey;
+  };
+
+  // su iOS la chiave EC è esportata in formato grezzo X9.63 (04|X|Y): la converte in
+  // SubjectPublicKeyInfo DER (come su Android), l'unico formato accettato dal registro
+  const publicKeyToSpki = (key) => {
+    const raw = atob(key);
+    if (raw.length !== 65 || raw.charCodeAt(0) !== 4) {
+      return key;
+    }
+    const header = '3059301306072a8648ce3d020106082a8648ce3d030107034200'.match(/../g)
+      .map(byte => String.fromCharCode(parseInt(byte, 16))).join('');
+    return btoa(header + raw);
   };
 
   // resetta il timeout di inattività ad ogni cambio pagina

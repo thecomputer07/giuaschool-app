@@ -12,14 +12,17 @@ export default {
     "slug": "giuaschool-app",
     "description": "Web app per il registro scolastico giua@school",
     "githubUrl": "https://github.com/iisgiua/giuaschool-app",
-    "owner": "iisgiua",
+    "owner": "thecomputer07",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "scheme": "giuaschool",
     "ios": {
-      "bundleIdentifier": "it.iisgiua.giuaschoolapp",
+      "bundleIdentifier": "com.thecomputer07.giuaschool",
       "supportsTablet": true,
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      },
     },
     "android": {
       "package": "it.iisgiua.giuaschoolapp",
@@ -97,7 +100,7 @@ export default {
       "url": process.env.URL ?? "",
       "school": process.env.SCHOOL ?? "",
       "eas": {
-        "projectId": "9ff70fa2-33c4-41ae-886b-b648a786f5f9"
+        "projectId": "69cbddba-3bd5-46ab-a491-e45901ea5384"
       }
     }
   }
